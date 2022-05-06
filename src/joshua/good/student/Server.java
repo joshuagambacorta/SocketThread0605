@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.io.*;
+import java.net.*;
 
 public class Server {
 
@@ -17,28 +19,49 @@ public class Server {
     String messaggioRicevuto;
 
     public Server(){
-        //Porta del server maggiore di 1024
-        int port = 2000;
-        //tempo in millisecondi in attesa
-        int time = 2000;
-        //oggetto sServerSocket necessario per accettare la richiesta del client
-        ServerSocket sSocket = null;
-        //oggetto da usare per fare la connessione TCP
-        Socket socket = null;
+        ServerSocket server = null;
+
         try {
-            //apro una porta nel server socket (appena istanziato)
-            sSocket = new ServerSocket(port);
-            System.out.println("In attesa di connessione...");
 
-            //accetto la connessione
-            socket = sSocket.accept();
-            System.out.println("Accettata la connessione: "+socket.getRemoteSocketAddress());
+            // server is listening on port 1234
+            server = new ServerSocket(1234);
+            server.setReuseAddress(true);
 
-            //Scambio di dati
-            //socket.getInputStream();
-        } catch (
-                IOException e) {
-            System.err.println("Errore di I/O nell'istanza del server: "+e);
+            // running infinite loop for getting
+            // client request
+            while (true) {
+
+                // socket object to receive incoming client
+                // requests
+                Socket client = server.accept();
+
+                // Displaying that new client is connected
+                // to server
+                System.out.println("New client connected: "
+                        + client.getInetAddress()
+                        .getHostAddress());
+
+                // create a new thread object
+                ClientHandler clientSock
+                        = new ClientHandler(client);
+
+                // This thread will handle the client
+                // separately
+                new Thread(clientSock).start();
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            if (server != null) {
+                try {
+                    server.close();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

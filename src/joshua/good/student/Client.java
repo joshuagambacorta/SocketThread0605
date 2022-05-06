@@ -9,6 +9,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 public class Client {
 
@@ -22,26 +25,42 @@ public class Client {
     String messaggioRicevuto;
 
     public Client(){
-        //Porta del server maggiore di 1024
-        int port = 2000;
-        try{
-            socket = new Socket("127.0.0.1", port);
-            System.out.println("client connesso con il client: "+socket.getRemoteSocketAddress());
-            System.out.println("client connesso con la porta: "+socket.getLocalPort());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
-            try {
-                if (socket!=null)
-                    socket.close();
-            } catch (ConnectException e) {
-                System.err.println("Errore in chiusura: "+e);
-            } catch (IOException e) {
-                e.printStackTrace();
+        // establish a connection by providing host and port
+        // number
+        try (Socket socket = new Socket("localhost", 1234)) {
+
+            // writing to server
+            PrintWriter out = new PrintWriter(
+                    socket.getOutputStream(), true);
+
+            // reading from server
+            BufferedReader in
+                    = new BufferedReader(new InputStreamReader(
+                    socket.getInputStream()));
+
+            // object of scanner class
+            Scanner sc = new Scanner(System.in);
+            String line = null;
+
+            while (!"exit".equalsIgnoreCase(line)) {
+
+                // reading from user
+                line = sc.nextLine();
+
+                // sending the user input to server
+                out.println(line);
+                out.flush();
+
+                // displaying server reply
+                System.out.println("Server replied "
+                        + in.readLine());
             }
+
+            // closing the scanner object
+            sc.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
